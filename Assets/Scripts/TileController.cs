@@ -9,10 +9,12 @@ public class TileController : MonoBehaviour
     private bool hasShip;
     public GameObject chipPrefab; 
 
-    private GameObject placedChip = null; //track placed chip
-    private static bool isBlackTurn = true;  //track turns
+    private GameObject placedChip = null;
 
-    private static Dictionary<Vector2Int, TileController> tileMap = new Dictionary<Vector2Int, TileController>(); // Stores all tiles
+    private GameObject hoverChip = null;
+    private static bool isBlackTurn = true;
+
+    private static Dictionary<Vector2Int, TileController> tileMap = new Dictionary<Vector2Int, TileController>();
 
     public void Init(GameController controller, int xCoord, int yCoord, bool shipPresent)
     {
@@ -23,6 +25,33 @@ public class TileController : MonoBehaviour
         tileMap[new Vector2Int(x, y)] = this; 
     }
 
+
+        private void OnMouseEnter()
+    {
+        if (placedChip == null && chipPrefab != null)
+        {
+            Vector3 chipPosition = transform.position + new Vector3(0, 0, -0.5f);
+            hoverChip = Instantiate(chipPrefab, chipPosition, Quaternion.identity);
+            hoverChip.transform.SetParent(transform);
+            hoverChip.transform.localScale = new Vector3(0.8f, 0.8f, 1);
+
+            SpriteRenderer hoverRenderer = hoverChip.GetComponent<SpriteRenderer>();
+            if (hoverRenderer != null)
+            {
+                Color hoverColor = isBlackTurn ? new Color(0, 0, 0, 0.3f) : new Color(1, 1, 1, 0.3f);
+                hoverRenderer.color = hoverColor; 
+            }
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        if (hoverChip != null)
+        {
+            Destroy(hoverChip);
+        }
+    }
+
     private void OnMouseDown()
     {
         Debug.Log($"Tile clicked at ({x}, {y}) - Ship Present: {hasShip}");
@@ -30,18 +59,18 @@ public class TileController : MonoBehaviour
         
         if (hasShip)
         {
-            GetComponent<SpriteRenderer>().color = Color.red; //change tile color if  ship is present
+            GetComponent<SpriteRenderer>().color = Color.red;
         }
 
-        //place chip only if one isn't already placed
+        
         if (placedChip == null && chipPrefab != null)
         {
             Vector3 chipPosition = transform.position + new Vector3(0, 0, -1f); 
             placedChip = Instantiate(chipPrefab, chipPosition, Quaternion.identity);
-            placedChip.transform.SetParent(transform); //attach chip to tile
+            placedChip.transform.SetParent(transform);
             placedChip.transform.localScale = new Vector3(0.8f, 0.8f, 1);
 
-            //change chip color based on turn
+            
             SpriteRenderer chipRenderer = placedChip.GetComponent<SpriteRenderer>();
             if (chipRenderer != null)
             {
@@ -49,17 +78,17 @@ public class TileController : MonoBehaviour
             }
 
             FlipOpponentChips(isBlackTurn);
-            isBlackTurn = !isBlackTurn; //switch turn
+            isBlackTurn = !isBlackTurn; 
         }
     }
-    //flipping mechanics
+    
     private void FlipOpponentChips(bool isBlack)
     {
         Vector2Int[] directions = {
-            new Vector2Int(1, 0), new Vector2Int(-1, 0), //horizontal
-            new Vector2Int(0, 1), new Vector2Int(0, -1), //vertical
-            new Vector2Int(1, 1), new Vector2Int(-1, -1), //diagonal - \
-            new Vector2Int(1, -1), new Vector2Int(-1, 1) //diagonal - /
+            new Vector2Int(1, 0), new Vector2Int(-1, 0), 
+            new Vector2Int(0, 1), new Vector2Int(0, -1), 
+            new Vector2Int(1, 1), new Vector2Int(-1, -1), 
+            new Vector2Int(1, -1), new Vector2Int(-1, 1) 
         };
 
         foreach (var dir in directions)
@@ -75,7 +104,7 @@ public class TileController : MonoBehaviour
                 Color chipColor = chipRenderer.color;
                 Color currentTurnColor = isBlack ? Color.black : Color.white;
 
-                if (chipColor == currentTurnColor) //flip all stored if a matching color is found
+                if (chipColor == currentTurnColor)
                 {
                     foreach (var tile in toFlip)
                     {
