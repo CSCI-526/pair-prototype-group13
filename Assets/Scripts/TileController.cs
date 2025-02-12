@@ -79,6 +79,7 @@ public class TileController : MonoBehaviour
 
             FlipOpponentChips(isBlackTurn);
             isBlackTurn = !isBlackTurn; 
+            GameController.ChangeTurn(gameController);
         }
     }
     

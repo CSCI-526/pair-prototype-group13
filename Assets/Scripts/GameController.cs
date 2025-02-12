@@ -1,25 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject tilePrefab;
+    public TextMeshProUGUI turnText;
+
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
     private List<int> shipSizes = new List<int> { 3, 2, 5, 8, 6 };
+    private static bool isBlackTurn = true;
+
 
     void Start()
     {
         grid = new int[boardSize, boardSize];
-        PlaceShips(); 
-        GenerateBoard(); 
+        PlaceShips();
+        GenerateBoard();
         PrintGrid(); // For Debugging only
         AdjustCamera();
+        UpdateTurnText();
     }
 
- // Update is called once per frame
+    public void UpdateTurnText()
+    {
+        turnText.text = isBlackTurn ? "Black's Turn" : "White's Turn";
+    }
+
+    public static void ChangeTurn(GameController gameController)
+    {
+        isBlackTurn = !isBlackTurn;
+        gameController.UpdateTurnText();
+    }
+
+
+
+    // Update is called once per frame
     void Update()
     {
 
@@ -30,7 +49,7 @@ public class GameController : MonoBehaviour
     }
 
 
-        // void GenerateBoard()
+    // void GenerateBoard()
     // {
     //     float offset = boardSize / 2.0f - 0.5f;
 
