@@ -7,12 +7,16 @@ public class TileController : MonoBehaviour
     // Start is called before the first frame update
     private GameController gameController;
     private int x, y;
-    public void Init(GameController controller, int xCoord, int yCoord)
+    private bool hasShip;
+
+    public void Init(GameController controller, int xCoord, int yCoord, bool shipPresent)
     {
         gameController = controller;
         x = xCoord;
         y = yCoord;
+        hasShip = shipPresent;
     }
+
     void Start()
     {
         
@@ -26,6 +30,14 @@ public class TileController : MonoBehaviour
 
     private void OnMouseDown()
     {
-        Debug.Log($"Tile clicked at ({x}, {y})");
+        Debug.Log($"Tile clicked at ({x}, {y}) - Ship Present: {hasShip}");
+        if (hasShip)
+        {
+            GetComponent<SpriteRenderer>().color = Color.red; // Change color if ship is present
+        }
+        else
+        {
+            GetComponent<SpriteRenderer>().color = Color.blue; // Change color if empty
+        }
     }
 }

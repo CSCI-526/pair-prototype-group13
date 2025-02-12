@@ -7,13 +7,19 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     public GameObject tilePrefab;
     private int boardSize = 10;
+    private int[,] grid; // 0 = Empty, 1 = Ship
+    private List<int> shipSizes = new List<int> { 3, 2, 5, 8, 6 };
+
     void Start()
     {
-        GenerateBoard();
+        grid = new int[boardSize, boardSize];
+        PlaceShips(); 
+        GenerateBoard(); 
+        PrintGrid(); // For Debugging only
         AdjustCamera();
     }
 
-    // Update is called once per frame
+ // Update is called once per frame
     void Update()
     {
 
@@ -24,7 +30,7 @@ public class GameController : MonoBehaviour
     }
 
 
-    // void GenerateBoard()
+        // void GenerateBoard()
     // {
     //     float offset = boardSize / 2.0f - 0.5f;
 
@@ -56,13 +62,124 @@ public class GameController : MonoBehaviour
                 GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity);
                 tile.name = $"Tile {x},{y}";
                 TileController tileController = tile.GetComponent<TileController>();
+
                 if (tileController != null)
                 {
-                    tileController.Init(this, x, y);
+                    bool hasShip = grid[x, y] == 1; // Check if this tile has a ship
+                    tileController.Init(this, x, y, hasShip);
                 }
             }
         }
     }
 
+    void PlaceShips()
+    {
+        foreach (int shipSize in shipSizes)
+        {
+            bool placed = false;
 
+            while (!placed)
+            {
+                int startX = Random.Range(0, boardSize);
+                int startY = Random.Range(0, boardSize);
+                bool isHorizontal = Random.Range(0, 2) == 0; // Random orientation
+
+                if (shipSize == 8)
+                {
+                    placed = TryPlaceSplitShip(startX, startY, isHorizontal);
+                }
+                else
+                {
+                    if (CanPlaceShip(startX, startY, shipSize, isHorizontal))
+                    {
+                        PlaceShip(startX, startY, shipSize, isHorizontal);
+                        placed = true;
+                    }
+                }
+            }
+        }
+    }
+
+    bool TryPlaceSplitShip(int startX, int startY, bool isHorizontal)
+    {
+        if (isHorizontal)
+        {
+            if (startX + 4 > boardSize || startY + 1 >= boardSize) return false; // Ensure space for 2 rows
+        }
+        else
+        {
+            if (startY + 4 > boardSize || startX + 1 >= boardSize) return false; // Ensure space for 2 columns
+        }
+
+        // Check for overlap
+        for (int i = 0; i < 4; i++)
+        {
+            int x1 = isHorizontal ? startX + i : startX;
+            int y1 = isHorizontal ? startY : startY + i;
+            int x2 = isHorizontal ? startX + i : startX + 1;
+            int y2 = isHorizontal ? startY + 1 : startY + i;
+
+            if (grid[x1, y1] == 1 || grid[x2, y2] == 1) return false; // Overlap detected
+        }
+
+        // Place the split ship
+        for (int i = 0; i < 4; i++)
+        {
+            int x1 = isHorizontal ? startX + i : startX;
+            int y1 = isHorizontal ? startY : startY + i;
+            int x2 = isHorizontal ? startX + i : startX + 1;
+            int y2 = isHorizontal ? startY + 1 : startY + i;
+
+            grid[x1, y1] = 1;
+            grid[x2, y2] = 1;
+        }
+
+        return true;
+    }
+
+    bool CanPlaceShip(int startX, int startY, int size, bool isHorizontal)
+    {
+        if (isHorizontal)
+        {
+            if (startX + size > boardSize) return false;
+        }
+        else
+        {
+            if (startY + size > boardSize) return false;
+        }
+
+        for (int i = 0; i < size; i++)
+        {
+            int x = isHorizontal ? startX + i : startX;
+            int y = isHorizontal ? startY : startY + i;
+
+            if (grid[x, y] == 1) return false; // Already occupied
+        }
+
+        return true;
+    }
+
+    void PlaceShip(int startX, int startY, int size, bool isHorizontal)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            int x = isHorizontal ? startX + i : startX;
+            int y = isHorizontal ? startY : startY + i;
+            grid[x, y] = 1; // Mark as a ship
+        }
+    }
+
+    void PrintGrid()
+    {
+        string gridString = "";
+        for (int y = 0; y < boardSize; y++)
+        {
+            for (int x = 0; x < boardSize; x++)
+            {
+                gridString += grid[x, y] + " ";
+            }
+            gridString += "\n";
+        }
+        Debug.Log(gridString); // Prints the grid in the Unity Console
+    }
 }
