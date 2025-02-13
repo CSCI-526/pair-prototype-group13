@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject tilePrefab;
     public TextMeshProUGUI turnText;
+    public Button resetButton;
 
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
@@ -23,6 +25,11 @@ public class GameController : MonoBehaviour
         PrintGrid(); // For Debugging only
         AdjustCamera();
         UpdateTurnText();
+
+        if (resetButton != null)
+        {
+            resetButton.onClick.AddListener(ResetGame);
+        }
     }
 
     public void UpdateTurnText()
@@ -90,6 +97,30 @@ public class GameController : MonoBehaviour
             }
         }
     }
+
+    public void ResetGame()
+    {
+        Debug.Log("Reset button clicked!"); // Debugging log
+
+        isBlackTurn = true;
+        grid = new int[boardSize, boardSize]; // Reset grid
+
+        // Destroy all existing tile objects (tiles and placed chips)
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Destroy all chips placed on the board
+        TileController.ClearAllPlacedChips();
+
+        TileController.ResetTileMap(); // Clear tile references
+        PlaceShips(); // Reposition ships
+        GenerateBoard(); // Recreate board
+        UpdateTurnText();
+    }
+
+
 
     void PlaceShips()
     {
