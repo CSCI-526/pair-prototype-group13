@@ -12,7 +12,7 @@ public class GameController : MonoBehaviour
 
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
-    private static bool isBlackTurn = true;
+    private static bool iscolor1Turn = true;
 
     void Start()
     {
@@ -31,12 +31,12 @@ public class GameController : MonoBehaviour
 
     public void UpdateTurnText()
     {
-        turnText.text = isBlackTurn ? "Black's Turn" : "White's Turn";
+        turnText.text = iscolor1Turn ? "Player 1's Turn" : "Player 2's Turn";
     }
 
     public static void ChangeTurn(GameController gameController)
     {
-        isBlackTurn = !isBlackTurn;
+        iscolor1Turn = !iscolor1Turn;
         gameController.UpdateTurnText();
     }
 
@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
     {
         Debug.Log("Reset button clicked!");
 
-        isBlackTurn = true;
+        iscolor1Turn = true;
         grid = new int[boardSize, boardSize];
 
         foreach (Transform child in transform)

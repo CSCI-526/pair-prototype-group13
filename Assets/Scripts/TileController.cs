@@ -10,11 +10,12 @@ public class TileController : MonoBehaviour
     private int x, y;
     private bool hasShip;
     public GameObject chipPrefab;
-
+    public Color color1 = new Color(145f / 255f, 77f / 255f, 4f / 255f); 
+    public Color color2 = new Color(247f / 255f, 183f / 255f, 99f / 255f);
     private GameObject placedChip = null;
 
     private GameObject hoverChip = null;
-    private static bool isBlackTurn = true;
+    private static bool iscolor1Turn = true;
 
 
     private static Dictionary<Vector2Int, TileController> tileMap = new Dictionary<Vector2Int, TileController>();
@@ -55,7 +56,7 @@ public class TileController : MonoBehaviour
             SpriteRenderer hoverRenderer = hoverChip.GetComponent<SpriteRenderer>();
             if (hoverRenderer != null)
             {
-                Color hoverColor = isBlackTurn ? new Color(0, 0, 0, 0.3f) : new Color(1, 1, 1, 0.3f);
+                Color hoverColor = iscolor1Turn ? new Color(0, 0, 0, 0.3f) : new Color(1, 1, 1, 0.3f);
                 hoverRenderer.color = hoverColor;
             }
         }
@@ -106,11 +107,12 @@ public class TileController : MonoBehaviour
             SpriteRenderer chipRenderer = placedChip.GetComponent<SpriteRenderer>();
             if (chipRenderer != null)
             {
-                chipRenderer.color = isBlackTurn ? Color.black : Color.white;
+                chipRenderer.color = iscolor1Turn ? color1 : color2;
             }
+
             placedChips.Add(placedChip);
-            FlipOpponentChips(isBlackTurn);
-            isBlackTurn = !isBlackTurn;
+            FlipOpponentChips(iscolor1Turn);
+            iscolor1Turn = !iscolor1Turn;
             GameController.ChangeTurn(gameController);
         }
     }
@@ -120,7 +122,7 @@ public class TileController : MonoBehaviour
         tileMap.Clear();
     }
 
-    private void FlipOpponentChips(bool isBlack)
+    private void FlipOpponentChips(bool iscolor1)
     {
         Vector2Int[] directions = {
             new Vector2Int(1, 0), new Vector2Int(-1, 0),
@@ -140,7 +142,7 @@ public class TileController : MonoBehaviour
                 if (chipRenderer == null) break;
 
                 Color chipColor = chipRenderer.color;
-                Color currentTurnColor = isBlack ? Color.black : Color.white;
+                Color currentTurnColor = iscolor1 ? color1 : color2;
 
                 if (chipColor == currentTurnColor)
                 {
