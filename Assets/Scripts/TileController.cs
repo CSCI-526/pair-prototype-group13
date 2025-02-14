@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TileController : MonoBehaviour
 {
     private GameController gameController;
+
     private int x, y;
     private bool hasShip;
     public GameObject chipPrefab;
@@ -14,8 +16,11 @@ public class TileController : MonoBehaviour
     private GameObject hoverChip = null;
     private static bool isBlackTurn = true;
 
+
     private static Dictionary<Vector2Int, TileController> tileMap = new Dictionary<Vector2Int, TileController>();
     private static List<GameObject> placedChips = new List<GameObject>();
+    private static GameObject InstructionsPanel;
+
     public void Init(GameController controller, int xCoord, int yCoord, bool shipPresent)
     {
         gameController = controller;
@@ -64,8 +69,23 @@ public class TileController : MonoBehaviour
         }
     }
 
+
     private void OnMouseDown()
     {
+
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log("Clicked on UI, ignoring tile click.");
+            return;
+        }
+
+        if (InstructionsPanel != null && InstructionsPanel.activeSelf)
+        {
+            Debug.Log("Tile click ignored because instructions panel is active.");
+            return;
+        }
+
+
         Debug.Log($"Tile clicked at ({x}, {y}) - Ship Present: {hasShip}");
 
 

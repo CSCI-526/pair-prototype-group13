@@ -25,6 +25,7 @@ public class GameController : MonoBehaviour
         PrintGrid(); // For Debugging only
         AdjustCamera();
         UpdateTurnText();
+    
 
         if (resetButton != null)
         {
