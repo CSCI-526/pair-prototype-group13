@@ -6,26 +6,22 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-    // Start is called before the first frame update
     public GameObject tilePrefab;
     public TextMeshProUGUI turnText;
     public Button resetButton;
 
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
-    private List<int> shipSizes = new List<int> { 3, 2, 5, 8, 6 };
     private static bool isBlackTurn = true;
-
 
     void Start()
     {
         grid = new int[boardSize, boardSize];
         PlaceShips();
         GenerateBoard();
-        PrintGrid(); // For Debugging only
+        PrintGrid();
         AdjustCamera();
         UpdateTurnText();
-    
 
         if (resetButton != null)
         {
@@ -44,38 +40,11 @@ public class GameController : MonoBehaviour
         gameController.UpdateTurnText();
     }
 
-
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
     void AdjustCamera()
     {
         Camera.main.orthographicSize = 6.5f;
     }
 
-
-    // void GenerateBoard()
-    // {
-    //     float offset = boardSize / 2.0f - 0.5f;
-
-    //     for (int x = 0; x < boardSize; x++)
-    //     {
-    //         for (int y = 0; y < boardSize; y++)
-    //         {
-    //             Vector2 position = new Vector2(x - offset, y - offset);
-    //             GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity);
-    //             tile.name = $"Tile {x},{y}";
-    //             TileController tileController = tile.GetComponent<TileController>();
-    //             if (tileController != null)
-    //             {
-    //                 tileController.Init(this, x, y);
-    //             }
-    //         }
-    //     }
-    // }
     void GenerateBoard()
     {
         float offset = boardSize / 2.0f - 0.5f;
@@ -92,7 +61,7 @@ public class GameController : MonoBehaviour
 
                 if (tileController != null)
                 {
-                    bool hasShip = grid[x, y] == 1; // Check if this tile has a ship
+                    bool hasShip = grid[x, y] == 1;
                     tileController.Init(this, x, y, hasShip);
                 }
             }
@@ -101,30 +70,28 @@ public class GameController : MonoBehaviour
 
     public void ResetGame()
     {
-        Debug.Log("Reset button clicked!"); // Debugging log
+        Debug.Log("Reset button clicked!");
 
         isBlackTurn = true;
-        grid = new int[boardSize, boardSize]; // Reset grid
+        grid = new int[boardSize, boardSize];
 
-        // Destroy all existing tile objects (tiles and placed chips)
         foreach (Transform child in transform)
         {
             Destroy(child.gameObject);
         }
 
-        // Destroy all chips placed on the board
         TileController.ClearAllPlacedChips();
-
-        TileController.ResetTileMap(); // Clear tile references
-        PlaceShips(); // Reposition ships
-        GenerateBoard(); // Recreate board
+        TileController.ResetTileMap();
+        PlaceShips();
+        GenerateBoard();
+        PrintGrid();
         UpdateTurnText();
     }
 
-
-
     void PlaceShips()
     {
+        List<int> shipSizes = new List<int> { 2, 3, 4, 6, 8 };
+
         foreach (int shipSize in shipSizes)
         {
             bool placed = false;
@@ -133,7 +100,7 @@ public class GameController : MonoBehaviour
             {
                 int startX = Random.Range(0, boardSize);
                 int startY = Random.Range(0, boardSize);
-                bool isHorizontal = Random.Range(0, 2) == 0; // Random orientation
+                bool isHorizontal = Random.Range(0, 2) == 0;
 
                 if (shipSize == 8)
                 {
@@ -155,25 +122,26 @@ public class GameController : MonoBehaviour
     {
         if (isHorizontal)
         {
-            if (startX + 4 > boardSize || startY + 1 >= boardSize) return false; // Ensure space for 2 rows
+            if (startX + 4 > boardSize - 1 || startY + 1 >= boardSize - 1) return false;
         }
         else
         {
-            if (startY + 4 > boardSize || startX + 1 >= boardSize) return false; // Ensure space for 2 columns
+            if (startY + 4 > boardSize - 1 || startX + 1 >= boardSize - 1) return false;
         }
 
-        // Check for overlap
-        for (int i = 0; i < 4; i++)
+        for (int i = -1; i <= 4; i++)
         {
             int x1 = isHorizontal ? startX + i : startX;
             int y1 = isHorizontal ? startY : startY + i;
             int x2 = isHorizontal ? startX + i : startX + 1;
             int y2 = isHorizontal ? startY + 1 : startY + i;
 
-            if (grid[x1, y1] == 1 || grid[x2, y2] == 1) return false; // Overlap detected
+            if (IsOutOfBounds(x1, y1) || IsOutOfBounds(x2, y2)) continue;
+
+            if (grid[x1, y1] == 1 || grid[x2, y2] == 1 || IsAdjacentOccupied(x1, y1) || IsAdjacentOccupied(x2, y2))
+                return false;
         }
 
-        // Place the split ship
         for (int i = 0; i < 4; i++)
         {
             int x1 = isHorizontal ? startX + i : startX;
@@ -192,19 +160,21 @@ public class GameController : MonoBehaviour
     {
         if (isHorizontal)
         {
-            if (startX + size > boardSize) return false;
+            if (startX + size > boardSize - 1) return false;
         }
         else
         {
-            if (startY + size > boardSize) return false;
+            if (startY + size > boardSize - 1) return false;
         }
 
-        for (int i = 0; i < size; i++)
+        for (int i = -1; i <= size; i++)
         {
             int x = isHorizontal ? startX + i : startX;
             int y = isHorizontal ? startY : startY + i;
 
-            if (grid[x, y] == 1) return false; // Already occupied
+            if (IsOutOfBounds(x, y)) continue;
+
+            if (grid[x, y] == 1 || IsAdjacentOccupied(x, y)) return false;
         }
 
         return true;
@@ -216,8 +186,34 @@ public class GameController : MonoBehaviour
         {
             int x = isHorizontal ? startX + i : startX;
             int y = isHorizontal ? startY : startY + i;
-            grid[x, y] = 1; // Mark as a ship
+            grid[x, y] = 1;
         }
+    }
+
+    bool IsAdjacentOccupied(int x, int y)
+    {
+        int[][] directions = {
+        new int[] { -1, -1 }, new int[] { -1, 0 }, new int[] { -1, 1 },
+        new int[] { 0, -1 }, new int[] { 0, 1 },
+        new int[] { 1, -1 }, new int[] { 1, 0 }, new int[] { 1, 1 }
+    };
+
+        foreach (int[] dir in directions)
+        {
+            int newX = x + dir[0];
+            int newY = y + dir[1];
+
+            if (!IsOutOfBounds(newX, newY) && grid[newX, newY] == 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool IsOutOfBounds(int x, int y)
+    {
+        return x < 0 || y < 0 || x >= boardSize || y >= boardSize;
     }
 
     void PrintGrid()
@@ -231,6 +227,6 @@ public class GameController : MonoBehaviour
             }
             gridString += "\n";
         }
-        Debug.Log(gridString); // Prints the grid in the Unity Console
+        Debug.Log("Final Grid:\n" + gridString);
     }
 }
