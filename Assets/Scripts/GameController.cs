@@ -13,6 +13,11 @@ public class GameController : MonoBehaviour
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
     private static bool iscolor1Turn = true;
+    private List<Vector2Int> ships = new List<Vector2Int>(); // Track ship positions
+    public List<List<Vector2Int>> Realgroups = new List<List<Vector2Int>>();
+
+    //private int scorePlayer1 = 0;
+    //private int scorePlayer2 = 0;
 
     void Start()
     {
@@ -22,6 +27,7 @@ public class GameController : MonoBehaviour
         PrintGrid();
         AdjustCamera();
         UpdateTurnText();
+        Realgroups = GroupShips(ships);
 
         if (resetButton != null)
         {
@@ -38,7 +44,9 @@ public class GameController : MonoBehaviour
     {
         iscolor1Turn = !iscolor1Turn;
         gameController.UpdateTurnText();
+        //gameController.CalculateScores(); 
     }
+    
 
     void AdjustCamera()
     {
@@ -151,6 +159,8 @@ public class GameController : MonoBehaviour
 
             grid[x1, y1] = 1;
             grid[x2, y2] = 1;
+            ships.Add(new Vector2Int(x1, y1));
+            ships.Add(new Vector2Int(x2, y2));
         }
 
         return true;
@@ -187,6 +197,7 @@ public class GameController : MonoBehaviour
             int x = isHorizontal ? startX + i : startX;
             int y = isHorizontal ? startY : startY + i;
             grid[x, y] = 1;
+            ships.Add(new Vector2Int(x, y));
         }
     }
 
@@ -215,6 +226,91 @@ public class GameController : MonoBehaviour
     {
         return x < 0 || y < 0 || x >= boardSize || y >= boardSize;
     }
+    void PrintShips()
+    {
+        string shipPositions = "Ships Positions:\n";
+        foreach (Vector2Int position in ships)
+        {
+            shipPositions += $"({position.x}, {position.y})\n";
+        }
+        Debug.Log(shipPositions);
+    }
+
+List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
+{
+    List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
+    HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+
+    // ✅ Include all 8 possible adjacency directions
+    Vector2Int[] directions = new Vector2Int[]
+    {
+        new Vector2Int(1, 0), new Vector2Int(-1, 0), // Left & Right ✅
+        new Vector2Int(0, 1), new Vector2Int(0, -1), // Up & Down ✅
+        new Vector2Int(1, 1), new Vector2Int(-1, -1), // Diagonal ↘️ ↖️ ✅
+        new Vector2Int(1, -1), new Vector2Int(-1, 1),  // Diagonal ↙️ ↗️ ✅
+
+       
+    };
+
+    Debug.Log($"Grouping Ships... Total Ship Positions: {shipPositions.Count}");
+
+    foreach (Vector2Int ship in shipPositions)
+    {
+        if (!visited.Contains(ship))
+        {
+            List<Vector2Int> group = new List<Vector2Int>();
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            queue.Enqueue(ship);
+            visited.Add(ship);
+
+            while (queue.Count > 0)
+            {
+                Vector2Int current = queue.Dequeue();
+                group.Add(current);
+
+                foreach (Vector2Int dir in directions) // ✅ Now considers extra row shifts!
+                {
+                    Vector2Int neighbor = current + dir;
+                    if (shipPositions.Contains(neighbor) && !visited.Contains(neighbor))
+                    {
+                        queue.Enqueue(neighbor);
+                        visited.Add(neighbor);
+                    }
+                }
+            }
+
+            groups.Add(group);
+            Debug.Log($"New Group Formed: {group.Count} ships.");
+        }
+    }
+
+    Debug.Log($"Total Groups Formed: {groups.Count}");
+    return groups;
+}
+
+
+    
+
+        void PrintShipGroups(List<List<Vector2Int>> groups)
+    {
+        List<List<Vector2Int>> Realgroups = GroupShips(ships);
+
+        string output = "Grouped Ships:\n";
+        int groupNumber = 1;
+        foreach (var group in Realgroups)
+        {
+            output += $"Group {groupNumber}: ";
+            foreach (var pos in group)
+            {
+                output += $"({pos.x}, {pos.y}) ";
+            }
+            output += "\n";
+            groupNumber++;
+        }
+        Debug.Log(output);
+    }
+
+
 
     void PrintGrid()
     {
@@ -228,5 +324,7 @@ public class GameController : MonoBehaviour
             gridString += "\n";
         }
         Debug.Log("Final Grid:\n" + gridString);
+        PrintShips();
+        PrintShipGroups(Realgroups);
     }
 }
