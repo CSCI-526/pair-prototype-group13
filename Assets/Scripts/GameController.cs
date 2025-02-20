@@ -16,8 +16,6 @@ public class GameController : MonoBehaviour
     private List<Vector2Int> ships = new List<Vector2Int>(); // Track ship positions
     public List<List<Vector2Int>> Realgroups = new List<List<Vector2Int>>();
 
-    //private int scorePlayer1 = 0;
-    //private int scorePlayer2 = 0;
 
     void Start()
     {
@@ -241,13 +239,12 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
     List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
     HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
 
-    // ✅ Include all 8 possible adjacency directions
     Vector2Int[] directions = new Vector2Int[]
     {
-        new Vector2Int(1, 0), new Vector2Int(-1, 0), // Left & Right ✅
-        new Vector2Int(0, 1), new Vector2Int(0, -1), // Up & Down ✅
-        new Vector2Int(1, 1), new Vector2Int(-1, -1), // Diagonal ↘️ ↖️ ✅
-        new Vector2Int(1, -1), new Vector2Int(-1, 1),  // Diagonal ↙️ ↗️ ✅
+        new Vector2Int(1, 0), new Vector2Int(-1, 0), 
+        new Vector2Int(0, 1), new Vector2Int(0, -1),
+        new Vector2Int(1, 1), new Vector2Int(-1, -1), 
+        new Vector2Int(1, -1), new Vector2Int(-1, 1),
 
        
     };
@@ -268,7 +265,7 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
                 Vector2Int current = queue.Dequeue();
                 group.Add(current);
 
-                foreach (Vector2Int dir in directions) // ✅ Now considers extra row shifts!
+                foreach (Vector2Int dir in directions)
                 {
                     Vector2Int neighbor = current + dir;
                     if (shipPositions.Contains(neighbor) && !visited.Contains(neighbor))

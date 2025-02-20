@@ -93,7 +93,7 @@ public class TileController : MonoBehaviour
     int newScorePlayer2 = 0;
     Debug.Log("UpdateScore() called!");
     Debug.Log($"Total Ship Groups: {gameController.Realgroups.Count}");
-    foreach (var group in gameController.Realgroups) // Loop through each ship group
+    foreach (var group in gameController.Realgroups)
     {
         
         Debug.Log($"Checking Group: {group}");
@@ -101,7 +101,7 @@ public class TileController : MonoBehaviour
         int player1Count = 0;
         int player2Count = 0;
 
-        foreach (var pos in group) // Check each tile in the group
+        foreach (var pos in group)
         {
             Debug.Log($"Checking Pos: {pos}");
 
@@ -131,7 +131,6 @@ public class TileController : MonoBehaviour
             }
         }
 
-        // Assign points based on majority ownership
         if (player1Count > player2Count)
         {
             newScorePlayer1 += 1;
@@ -142,14 +141,11 @@ public class TileController : MonoBehaviour
         }
     }
 
-    // Update global scores
     scorePlayer1 = newScorePlayer1;
     scorePlayer2 = newScorePlayer2;
 
-    // Debug Log for Verification
     Debug.Log($"FINAL Updated Scores -> Player 1: {scorePlayer1}, Player 2: {scorePlayer2}");
 
-    // Update UI
     UpdateScoreUI();
 }
 
