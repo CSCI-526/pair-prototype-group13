@@ -8,17 +8,22 @@ public class GameController : MonoBehaviour
 {
     public GameObject tilePrefab;
     public TextMeshProUGUI turnText;
-    public Button resetButton;
+    //public Button resetButton;
+    public TextMeshProUGUI winnerText;
 
     private int boardSize = 10;
     private int[,] grid; // 0 = Empty, 1 = Ship
-    private static bool iscolor1Turn = true;
+    //private static bool iscolor1Turn = true;
     private List<Vector2Int> ships = new List<Vector2Int>(); // Track ship positions
     public List<List<Vector2Int>> Realgroups = new List<List<Vector2Int>>();
 
+    //private int scorePlayer1 = 0;
+    //private int scorePlayer2 = 0;
 
     void Start()
     {
+        winnerText.gameObject.SetActive(false);
+
         grid = new int[boardSize, boardSize];
         PlaceShips();
         GenerateBoard();
@@ -27,22 +32,27 @@ public class GameController : MonoBehaviour
         UpdateTurnText();
         Realgroups = GroupShips(ships);
 
-        if (resetButton != null)
-        {
-            resetButton.onClick.AddListener(ResetGame);
-        }
+        ////if (resetButton != null)
+        //{
+            //resetButton.onClick.AddListener(ResetGame);
+        //}
+
     }
 
     public void UpdateTurnText()
     {
-        turnText.text = iscolor1Turn ? "Player 1's Turn" : "Player 2's Turn";
+        //iscolor1Turn = TileController.iscolor1Turn;
+        turnText.text = TileController.iscolor1Turn ? "Player 1's Turn" : "Player 2's Turn";
     }
 
     public static void ChangeTurn(GameController gameController)
     {
-        iscolor1Turn = !iscolor1Turn;
+        TileController.iscolor1Turn = !TileController.iscolor1Turn;
         gameController.UpdateTurnText();
         //gameController.CalculateScores(); 
+        gameController.CheckGameEnd();
+        //TileController.UpdateScore();
+
     }
     
 
@@ -53,6 +63,11 @@ public class GameController : MonoBehaviour
 
     void GenerateBoard()
     {
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
+
         float offset = boardSize / 2.0f - 0.5f;
         float spacing = 1.1f;
 
@@ -74,11 +89,12 @@ public class GameController : MonoBehaviour
         }
     }
 
-    public void ResetGame()
+
+    /*public void ResetGame()
     {
         Debug.Log("Reset button clicked!");
 
-        iscolor1Turn = true;
+        TileController.iscolor1Turn = true;
         grid = new int[boardSize, boardSize];
 
         foreach (Transform child in transform)
@@ -86,13 +102,23 @@ public class GameController : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        System.GC.Collect();
+        Resources.UnloadUnusedAssets();         
+
+        ships.Clear();
+        Realgroups.Clear();
+            
         TileController.ClearAllPlacedChips();
         TileController.ResetTileMap();
+        TileController.ResetScores();
+        winnerText.gameObject.SetActive(false);
+
         PlaceShips();
         GenerateBoard();
         PrintGrid();
         UpdateTurnText();
-    }
+        Realgroups = GroupShips(ships);
+    }*/
 
     void PlaceShips()
     {
@@ -198,7 +224,26 @@ public class GameController : MonoBehaviour
             ships.Add(new Vector2Int(x, y));
         }
     }
+    void CheckGameEnd()
+    {
+        if (TileController.AllTilesFilled()) // Condition to end the game
+        {
 
+            if (TileController.scorePlayer1 > TileController.scorePlayer2)
+            {
+                winnerText.text = "Player 1 Wins!\n RELOAD to Play Again!";
+            }
+            else if (TileController.scorePlayer2 > TileController.scorePlayer1)
+            {
+                winnerText.text = "Player 2 Wins!\n RELOAD to Play Again!";
+            }
+            else
+            {
+                winnerText.text = "It's a Tie!\n RELOAD to Play Again!";
+            }
+            winnerText.gameObject.SetActive(true);
+        }
+    }
     bool IsAdjacentOccupied(int x, int y)
     {
         int[][] directions = {
@@ -239,17 +284,18 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
     List<List<Vector2Int>> groups = new List<List<Vector2Int>>();
     HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
 
+    // Include all 8 possible adjacency directions
     Vector2Int[] directions = new Vector2Int[]
     {
-        new Vector2Int(1, 0), new Vector2Int(-1, 0), 
-        new Vector2Int(0, 1), new Vector2Int(0, -1),
-        new Vector2Int(1, 1), new Vector2Int(-1, -1), 
-        new Vector2Int(1, -1), new Vector2Int(-1, 1),
+        new Vector2Int(1, 0), new Vector2Int(-1, 0), // Left & Right
+        new Vector2Int(0, 1), new Vector2Int(0, -1), // Up & Down
+        new Vector2Int(1, 1), new Vector2Int(-1, -1), // Diagonal 
+        new Vector2Int(1, -1), new Vector2Int(-1, 1),  // Diagonal 
 
        
     };
 
-    Debug.Log($"Grouping Ships... Total Ship Positions: {shipPositions.Count}");
+    //Debug.Log($"Grouping Ships... Total Ship Positions: {shipPositions.Count}");
 
     foreach (Vector2Int ship in shipPositions)
     {
@@ -265,7 +311,7 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
                 Vector2Int current = queue.Dequeue();
                 group.Add(current);
 
-                foreach (Vector2Int dir in directions)
+                foreach (Vector2Int dir in directions) // consider extra row shifts
                 {
                     Vector2Int neighbor = current + dir;
                     if (shipPositions.Contains(neighbor) && !visited.Contains(neighbor))
@@ -277,7 +323,7 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
             }
 
             groups.Add(group);
-            Debug.Log($"New Group Formed: {group.Count} ships.");
+            //Debug.Log($"New Group Formed: {group.Count} ships.");
         }
     }
 

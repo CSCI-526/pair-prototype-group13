@@ -7,6 +7,7 @@ public class TileController : MonoBehaviour
 {
     private GameController gameController;
 
+
     private int x, y;
     private bool hasShip;
     public GameObject chipPrefab;
@@ -15,7 +16,7 @@ public class TileController : MonoBehaviour
     public GameObject placedChip = null;
 
     private GameObject hoverChip = null;
-    private static bool iscolor1Turn = true;
+    public static bool iscolor1Turn = true;
 
 
     public static Dictionary<Vector2Int, TileController> tileMap = new Dictionary<Vector2Int, TileController>();
@@ -23,8 +24,8 @@ public class TileController : MonoBehaviour
     private static GameObject InstructionsPanel;
 
 
-    private int scorePlayer1 = 0;
-    private int scorePlayer2 = 0;
+    public static int scorePlayer1 = 0;
+    public static int scorePlayer2 = 0;
 
     public void Init(GameController controller, int xCoord, int yCoord, bool shipPresent)
     {
@@ -35,6 +36,18 @@ public class TileController : MonoBehaviour
         tileMap[new Vector2Int(x, y)] = this;
     }
 
+    public static void ResetScores()
+    {
+        scorePlayer1 = 0;
+        scorePlayer2 = 0;
+        TextMeshProUGUI scoreText = GameObject.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
+
+        if (scoreText != null)
+        {
+            scoreText.text = "Player 1: 0 | Player 2: 0";
+        }
+
+    }
     public static void ClearAllPlacedChips()
     {
         foreach (var chip in placedChips)
@@ -91,9 +104,9 @@ public class TileController : MonoBehaviour
 {
     int newScorePlayer1 = 0;
     int newScorePlayer2 = 0;
-    Debug.Log("UpdateScore() called!");
-    Debug.Log($"Total Ship Groups: {gameController.Realgroups.Count}");
-    foreach (var group in gameController.Realgroups)
+    //Debug.Log("UpdateScore() called!");
+    //Debug.Log($"Total Ship Groups: {gameController.Realgroups.Count}");
+    foreach (var group in gameController.Realgroups) // Loop through each ship group
     {
         
         Debug.Log($"Checking Group: {group}");
@@ -101,7 +114,7 @@ public class TileController : MonoBehaviour
         int player1Count = 0;
         int player2Count = 0;
 
-        foreach (var pos in group)
+        foreach (var pos in group) // Check each tile in the group
         {
             Debug.Log($"Checking Pos: {pos}");
 
@@ -110,27 +123,28 @@ public class TileController : MonoBehaviour
                 SpriteRenderer chipRenderer = tileMap[pos].placedChip.GetComponent<SpriteRenderer>();
                 if (chipRenderer == null)
                 {
-                    Debug.LogError($"Tile at {pos} has no SpriteRenderer!");
+                    //Debug.LogError($"Tile at {pos} has no SpriteRenderer!");
                     continue;
                 }
 
                 if (chipRenderer.color == color1)
                 {
                     player1Count++;
-                    Debug.Log($"Tile at {pos} belongs to Player 1");
+                    //Debug.Log($"Tile at {pos} belongs to Player 1");
                 }
                 else if (chipRenderer.color == color2)
                 {
                     player2Count++;
-                    Debug.Log($"Tile at {pos} belongs to Player 2");
+                    //Debug.Log($"Tile at {pos} belongs to Player 2");
                 }
             }
             else
             {
-                Debug.LogWarning($"Tile at {pos} has NO CHIP or is missing in tileMap!");
+                //Debug.LogWarning($"Tile at {pos} has NO CHIP or is missing in tileMap!");
             }
         }
 
+        // Assign points based on majority ownership
         if (player1Count > player2Count)
         {
             newScorePlayer1 += 1;
@@ -141,15 +155,28 @@ public class TileController : MonoBehaviour
         }
     }
 
+    // Update global scores
     scorePlayer1 = newScorePlayer1;
     scorePlayer2 = newScorePlayer2;
 
-    Debug.Log($"FINAL Updated Scores -> Player 1: {scorePlayer1}, Player 2: {scorePlayer2}");
+    // Debug Log for Verification
+    //Debug.Log($"FINAL Updated Scores -> Player 1: {scorePlayer1}, Player 2: {scorePlayer2}");
 
+    // Update UI
     UpdateScoreUI();
 }
 
-
+    public static bool AllTilesFilled()
+    {
+        foreach (var tile in tileMap.Values)
+        {
+            if (tile.placedChip == null)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void OnMouseDown()
 
@@ -192,14 +219,14 @@ public class TileController : MonoBehaviour
                 chipRenderer.color = iscolor1Turn ? color1 : color2;
             }
             tileMap[new Vector2Int(x, y)] = this;
-            Debug.Log($"Tile ({x},{y}) now has a chip for Player {(iscolor1Turn ? 1 : 2)}");
+            //.Log($"Tile ({x},{y}) now has a chip for Player {(iscolor1Turn ? 1 : 2)}");
 
             placedChips.Add(placedChip);
             FlipOpponentChips(iscolor1Turn);
 
             UpdateScore();
 
-            iscolor1Turn = !iscolor1Turn;
+            //iscolor1Turn = !iscolor1Turn;
             GameController.ChangeTurn(gameController);
 
         }
