@@ -311,7 +311,7 @@ List<List<Vector2Int>> GroupShips(List<Vector2Int> shipPositions)
                 Vector2Int current = queue.Dequeue();
                 group.Add(current);
 
-                foreach (Vector2Int dir in directions) // Considers extra row shifts
+                foreach (Vector2Int dir in directions) // consider extra row shifts
                 {
                     Vector2Int neighbor = current + dir;
                     if (shipPositions.Contains(neighbor) && !visited.Contains(neighbor))
